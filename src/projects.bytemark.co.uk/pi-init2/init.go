@@ -26,7 +26,7 @@ import "golang.org/x/sys/unix"
 import "syscall" // for Exec only
 
 func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
-	if (err != nil) {
+	if err != nil {
 		errno, ok := err.(syscall.Errno)
 		if ok {
 			for _, b := range allowedErrnos {
@@ -35,8 +35,8 @@ func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
 				}
 			}
 		}
-		fmt.Println("error " + desc + ":" +err.Error())
-		unix.Exit(1);
+		fmt.Println("error " + desc + ":" + err.Error())
+		unix.Exit(1)
 	}
 }
 
@@ -53,8 +53,8 @@ func copyAppliance(path string, info os.FileInfo, err error) error {
 
 	// for now we don't care about permissions
 
-	if (info.IsDir()) {
-		if (os.Mkdir("/" + path, os.FileMode(int(0755))) != nil) {
+	if info.IsDir() {
+		if os.Mkdir("/"+path, os.FileMode(int(0755))) != nil {
 			return err
 		}
 	} else {
@@ -63,11 +63,11 @@ func copyAppliance(path string, info os.FileInfo, err error) error {
 		// useful can come of that
 		os.Remove("/" + path)
 
-		if (os.Symlink("/boot/appliance/"+path, "/"+path) != nil) {
+		if os.Symlink("/boot/appliance/"+path, "/"+path) != nil {
 			return err
 		}
 
-		fmt.Println("Symlinked "+path+" to /boot/appliance")
+		fmt.Println("Symlinked " + path + " to /boot/appliance")
 	}
 
 	return nil
@@ -75,31 +75,30 @@ func copyAppliance(path string, info os.FileInfo, err error) error {
 
 func main() {
 
-	exists := []syscall.Errno{syscall.EEXIST};
-
-	checkFatal("changing directory", 
+	exists := []syscall.Errno{syscall.EEXIST}
+	checkFatal("changing directory",
 		unix.Chdir("/"))
-	checkFatal("remount rw", 
-		unix.Mount("/","/","vfat", syscall.MS_REMOUNT, ""), )
+	checkFatal("remount rw",
+		unix.Mount("/", "/", "vfat", syscall.MS_REMOUNT, ""), )
 	checkFatalAllowed(
-		"making tmp", 
+		"making tmp",
 		unix.Mkdir("tmp", 0770),
 		exists)
 	checkFatalAllowed(
 		"making new_root", unix.Mkdir("new_root", 0770), exists)
-	checkFatal("mounting tmp", 
+	checkFatal("mounting tmp",
 		unix.Mount("", "tmp", "tmpfs", 0, ""))
-	checkFatal("create device node", 
-		unix.Mknod("tmp/mmcblk0p2", 0660 | syscall.S_IFBLK, 179<<8 | 2))
-	checkFatal("mounting real root", 
+	checkFatal("create device node",
+		unix.Mknod("tmp/mmcblk0p2", 0660|syscall.S_IFBLK, 179<<8|2))
+	checkFatal("mounting real root",
 		unix.Mount("tmp/mmcblk0p2", "new_root", "ext4", 0, ""))
-	checkFatal("pivoting", 
+	checkFatal("pivoting",
 		unix.PivotRoot("new_root", "new_root/boot"))
-	checkFatal("unmounting /boot/tmp", 
+	checkFatal("unmounting /boot/tmp",
 		unix.Unmount("/boot/tmp", 0))
-	checkFatal("Removing /boot/tmp", 
+	checkFatal("Removing /boot/tmp",
 		os.Remove("/boot/new_root"))
-	checkFatal("Removing /boot/new_root", 
+	checkFatal("Removing /boot/new_root",
 		os.Remove("/boot/tmp"))
 	checkFatal("changing into appliance directory",
 		unix.Chdir("/boot/appliance"))
@@ -121,6 +120,6 @@ func main() {
 	// use deprecated API because Exec has been removed from rebuild syscall
 	// stuff :-O  Hopefully we will get a hook in Raspbian before this becomes
 	// useless.
-	checkFatal("exec real init", 
+	checkFatal("exec real init",
 		syscall.Exec("/sbin/init", os.Args, nil))
 }
