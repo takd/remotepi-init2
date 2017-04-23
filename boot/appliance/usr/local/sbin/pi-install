@@ -6,9 +6,16 @@ if [ -f /boot/pi-install.done ] ; then
   exit 0
 fi
 
-touch /boot/ssh
 raspi-config nonint do_hostname "$(cat /boot/hostname)"
 
+# add ssh key(s)
+#(umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
+#chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
+#curl -sSL https://github.com/gesellix.keys >> /home/pi/.ssh/authorized_keys
+
 touch /boot/pi-install.done
+
+sync
+reboot
 
 exit 0

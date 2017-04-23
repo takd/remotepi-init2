@@ -15,7 +15,6 @@ FILES="boot/*"
 TARGET_DIR="/Volumes/boot"
 
 go build -o boot/pi-init2 pi-init2 && \
-  rm -f release.zip && \
-  zip -r release.zip ${FILES} && \
+  mv "${TARGET_DIR}/cmdline.txt" "${TARGET_DIR}/cmdline.txt.orig" && \
   cp -a ${FILES} ${TARGET_DIR} && \
   umount ${TARGET_DIR}

@@ -74,9 +74,6 @@ func copyAppliance(path string, info os.FileInfo, err error) error {
 }
 
 func main() {
-
-	//fmt.Println("init hook running...")
-
 	exists := []syscall.Errno{syscall.EEXIST}
 	checkFatal("changing directory",
 		unix.Chdir("/"))
@@ -106,20 +103,12 @@ func main() {
 		unix.Chdir("/boot"))
 	checkFatal("removing cmdline.txt",
 		os.Remove("/boot/cmdline.txt"))
-	checkFatal("renaming cmdline.txt.official to cmdline.txt",
-		unix.Rename("/boot/cmdline.txt.official", "/boot/cmdline.txt"))
+	checkFatal("renaming cmdline.txt.orig to cmdline.txt",
+		unix.Rename("/boot/cmdline.txt.orig", "/boot/cmdline.txt"))
 	checkFatal("changing into appliance directory",
 		unix.Chdir("/boot/appliance"))
 	checkFatal("copying appliance to root",
 		filepath.Walk(".", copyAppliance))
 	unix.Sync()
 	unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
-
-	// use deprecated API because Exec has been removed from rebuild syscall
-	// stuff :-O  Hopefully we will get a hook in Raspbian before this becomes
-	// useless.
-	//checkFatal("exec real init",
-	//	syscall.Exec("/usr/lib/raspi-config/init_resize.sh", os.Args, nil))
-	//checkFatal("exec real init",
-	//	syscall.Exec("/sbin/init", os.Args, nil))
 }
