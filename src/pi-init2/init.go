@@ -23,10 +23,7 @@ import "os"
 import "fmt"
 import "path/filepath"
 import "golang.org/x/sys/unix"
-import (
-	"syscall"
-	"time"
-) // for Exec only
+import "syscall" // for Exec only
 
 func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
 	if err != nil {
@@ -116,7 +113,6 @@ func main() {
 	checkFatal("copying appliance to root",
 		filepath.Walk(".", copyAppliance))
 	unix.Sync()
-	time.Sleep(10 * time.Second)
 	unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
 
 	// use deprecated API because Exec has been removed from rebuild syscall
