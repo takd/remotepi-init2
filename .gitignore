@@ -2,4 +2,5 @@ src/golang.org
 pkg/
 *.zip
 /pi-init2
+/boot/pi-init2
 *~
