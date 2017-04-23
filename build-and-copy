@@ -10,10 +10,11 @@ export GOPATH=`pwd`
 export GOOS=linux
 export GOARCH=arm
 
-FILES="cmdline.txt pi-init2 appliance"
+FILES="pi-init2 boot/*"
+#TARGET_DIR="/media/${USER}/boot"
+TARGET_DIR="/Volumes/boot"
 
 go build -o pi-init2 projects.bytemark.co.uk/pi-init2 && \
-  zip -r release.zip $FILES && \
-  cp -a $FILES /media/$USER/boot && \
-  umount /media/$USER/boot
-
+  zip -r release.zip ${FILES} && \
+  cp -a ${FILES} ${TARGET_DIR} && \
+  umount ${TARGET_DIR}

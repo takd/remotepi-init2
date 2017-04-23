@@ -1,6 +1,7 @@
 [Unit]
 Description=First time setup script for this Raspberry Pi
 Before=lightdm.service
+#Before=network-pre.service
 
 [Service]
 ExecStart=/usr/local/sbin/pi-install
@@ -9,4 +10,4 @@ TimeoutSec=600
 
 [Install]
 WantedBy=lightdm.service
-
+#WantedBy=default.service

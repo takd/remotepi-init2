@@ -75,6 +75,8 @@ func copyAppliance(path string, info os.FileInfo, err error) error {
 
 func main() {
 
+	//fmt.Println("init hook running...")
+
 	exists := []syscall.Errno{syscall.EEXIST}
 	checkFatal("changing directory",
 		unix.Chdir("/"))
@@ -96,27 +98,16 @@ func main() {
 		unix.PivotRoot("new_root", "new_root/boot"))
 	checkFatal("unmounting /boot/tmp",
 		unix.Unmount("/boot/tmp", 0))
-	checkFatal("Removing /boot/tmp",
-		os.Remove("/boot/new_root"))
 	checkFatal("Removing /boot/new_root",
+		os.Remove("/boot/new_root"))
+	checkFatal("Removing /boot/tmp",
 		os.Remove("/boot/tmp"))
 	checkFatal("changing into appliance directory",
 		unix.Chdir("/boot/appliance"))
 	checkFatal("copying appliance to root",
 		filepath.Walk(".", copyAppliance))
-	/*checkFatalAllowed(
-		"remove wpa_supplicant.conf",
-		unix.Unlink("/etc/wpa_supplicant/wpa_supplicant.conf"), noent)
-	checkFatalAllowed(
-		"remove rc.local",
-		unix.Unlink("/etc/rc.local"), noent)
-	checkFatal("symlink wpa_supplicant.conf", 
-		unix.Symlink(
-			"/boot/setup/wpa_supplicant.conf", 
-			"/etc/wpa_supplicant/wpa_supplicant.conf"))
-	checkFatal("symlink rc.local", 
-		unix.Symlink("/boot/setup/rc.local", "/etc/rc.local"))*/
 
+	//unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
 	// use deprecated API because Exec has been removed from rebuild syscall
 	// stuff :-O  Hopefully we will get a hook in Raspbian before this becomes
 	// useless.

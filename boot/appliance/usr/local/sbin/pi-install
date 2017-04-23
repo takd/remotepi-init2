@@ -26,7 +26,7 @@ ip route get 80.68.80.24 >/dev/null || exit 3
 #
 export DEBIAN_FRONTEND=noninteractive
 apt-get -q update
-apt-get -q -y install $PACKAGES
+apt-get -q -y install ${PACKAGES}
 
 # Change config to start X & log in (copied from raspi-config)
 #
