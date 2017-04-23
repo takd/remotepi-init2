@@ -19,11 +19,14 @@
 
 package main
 
-import "os"
-import "fmt"
-import "path/filepath"
 import "golang.org/x/sys/unix"
+import "fmt"
+import "io"
+import "os"
+import "path/filepath"
+import "strings"
 import "syscall" // for Exec only
+import "time"
 
 func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
 	if err != nil {
@@ -36,6 +39,7 @@ func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
 			}
 		}
 		fmt.Println("error " + desc + ":" + err.Error())
+		time.Sleep(10 * time.Second)
 		unix.Exit(1)
 	}
 }
@@ -44,7 +48,60 @@ func checkFatal(desc string, err error) {
 	checkFatalAllowed(desc, err, []syscall.Errno{})
 }
 
+// from https://gist.github.com/elazarl/5507969
+func cp(dst, src string) error {
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	// no need to check errors on read only file, we already got everything
+	// we need from the filesystem, so nothing can go wrong now.
+	defer s.Close()
+
+	d, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(d, s); err != nil {
+		d.Close()
+		return err
+	}
+	return d.Close()
+}
+
 func copyAppliance(path string, info os.FileInfo, err error) error {
+	info, err = os.Stat(path)
+	if err != nil {
+		// should only be called with real directories
+		return err
+	}
+
+	// for now we don't care about permissions
+
+	if info.IsDir() {
+		if os.Mkdir("/"+path, os.FileMode(int(0755))) != nil {
+			return err
+		}
+	} else {
+		// remove any existing file in place, ignore error, but let's
+		// not use RemoveAll to delete directories, not sure anything
+		// useful can come of that
+		os.Remove("/" + path)
+
+		if err = cp("/"+path, "/boot/appliance_install/"+path); err != nil {
+			return err
+		}
+		if strings.HasSuffix("/"+path, ".service") || strings.HasSuffix("/"+path, ".target") {
+			os.Chmod("/"+path, os.FileMode(int(0644)))
+		}
+
+		fmt.Println("Moved " + path + " to /")
+	}
+
+	return nil
+}
+
+func symlinkAppliance(path string, info os.FileInfo, err error) error {
 	info, err = os.Stat(path)
 	if err != nil {
 		// should only be called with real directories
@@ -105,10 +162,14 @@ func main() {
 		os.Remove("/boot/cmdline.txt"))
 	checkFatal("renaming cmdline.txt.orig to cmdline.txt",
 		unix.Rename("/boot/cmdline.txt.orig", "/boot/cmdline.txt"))
+	checkFatal("changing into appliance_install directory",
+		unix.Chdir("/boot/appliance_install"))
+	checkFatal("copying appliance_install to root",
+		filepath.Walk(".", copyAppliance))
 	checkFatal("changing into appliance directory",
 		unix.Chdir("/boot/appliance"))
-	checkFatal("copying appliance to root",
-		filepath.Walk(".", copyAppliance))
+	checkFatal("symlink appliance to root",
+		filepath.Walk(".", symlinkAppliance))
 	unix.Sync()
 	unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
 }

@@ -1,6 +1,6 @@
 [Unit]
 Description=First time setup script for this Raspberry Pi
-Before=network-pre.service
+After=networking.service raspi-config.service
 
 [Service]
 ExecStart=/usr/local/sbin/pi-install
@@ -8,4 +8,4 @@ Type=oneshot
 TimeoutSec=600
 
 [Install]
-WantedBy=default.service
+WantedBy=multi-user.target
