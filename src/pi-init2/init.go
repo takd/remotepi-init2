@@ -23,7 +23,10 @@ import "os"
 import "fmt"
 import "path/filepath"
 import "golang.org/x/sys/unix"
-import "syscall" // for Exec only
+import (
+	"syscall"
+	"time"
+) // for Exec only
 
 func checkFatalAllowed(desc string, err error, allowedErrnos []syscall.Errno) {
 	if err != nil {
@@ -98,19 +101,29 @@ func main() {
 		unix.PivotRoot("new_root", "new_root/boot"))
 	checkFatal("unmounting /boot/tmp",
 		unix.Unmount("/boot/tmp", 0))
-	checkFatal("Removing /boot/new_root",
+	checkFatal("removing /boot/new_root",
 		os.Remove("/boot/new_root"))
-	checkFatal("Removing /boot/tmp",
+	checkFatal("removing /boot/tmp",
 		os.Remove("/boot/tmp"))
+	checkFatal("changing into boot directory",
+		unix.Chdir("/boot"))
+	checkFatal("removing cmdline.txt",
+		os.Remove("/boot/cmdline.txt"))
+	checkFatal("renaming cmdline.txt.official to cmdline.txt",
+		unix.Rename("/boot/cmdline.txt.official", "/boot/cmdline.txt"))
 	checkFatal("changing into appliance directory",
 		unix.Chdir("/boot/appliance"))
 	checkFatal("copying appliance to root",
 		filepath.Walk(".", copyAppliance))
+	unix.Sync()
+	time.Sleep(10 * time.Second)
+	unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
 
-	//unix.Reboot(unix.LINUX_REBOOT_CMD_RESTART)
 	// use deprecated API because Exec has been removed from rebuild syscall
 	// stuff :-O  Hopefully we will get a hook in Raspbian before this becomes
 	// useless.
-	checkFatal("exec real init",
-		syscall.Exec("/sbin/init", os.Args, nil))
+	//checkFatal("exec real init",
+	//	syscall.Exec("/usr/lib/raspi-config/init_resize.sh", os.Args, nil))
+	//checkFatal("exec real init",
+	//	syscall.Exec("/sbin/init", os.Args, nil))
 }
