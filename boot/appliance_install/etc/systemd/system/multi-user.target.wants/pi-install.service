@@ -1,6 +1,6 @@
 [Unit]
 Description=First time setup script for this Raspberry Pi
-After=networking.service raspi-config.service
+After=network-online.target raspi-config.service
 
 [Service]
 ExecStart=/usr/local/sbin/pi-install

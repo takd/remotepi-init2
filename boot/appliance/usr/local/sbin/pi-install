@@ -9,9 +9,14 @@ fi
 raspi-config nonint do_hostname "$(cat /boot/hostname)"
 
 # add ssh key(s)
-#(umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
-#chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
-#curl -sSL https://github.com/gesellix.keys >> /home/pi/.ssh/authorized_keys
+echo -e "GET http://github.com HTTP/1.0\n\n" | nc github.com 80 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  (umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
+  chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
+  curl -sSL https://github.com/gesellix.keys >> /home/pi/.ssh/authorized_keys
+else
+  echo "Won't install ssh keys, github.com couldn't be reached."
+fi
 
 touch /boot/pi-install.done
 
