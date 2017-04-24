@@ -14,6 +14,8 @@ if [ $? -eq 0 ]; then
   (umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
   chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
   curl -sSL https://github.com/gesellix.keys >> /home/pi/.ssh/authorized_keys
+
+  sed -i 's|[#]*PasswordAuthentication yes|PasswordAuthentication no|g' /etc/ssh/sshd_config
 else
   echo "Won't install ssh keys, github.com couldn't be reached."
 fi
