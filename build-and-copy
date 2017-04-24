@@ -18,3 +18,11 @@ go build -o boot/pi-init2 pi-init2 && \
   mv "${TARGET_DIR}/cmdline.txt" "${TARGET_DIR}/cmdline.txt.orig" && \
   cp -a ${FILES} ${TARGET_DIR} && \
   umount ${TARGET_DIR}
+
+if [ "$1" != "" ]; then
+  echo "set hostname to $1"
+  echo "$1" > ${TARGET_DIR}/hostname
+fi
+
+printf "hostname: "
+cat ${TARGET_DIR}/hostname
