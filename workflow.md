@@ -13,3 +13,4 @@ My workflow looks like this (kept here for my personal convenience):
 
     # install docker
     curl -sSL https://get.docker.com/ | sh
+    curl -fsSL https://test.docker.com/ | sh
