@@ -10,6 +10,9 @@ boot/pi-init2:
 clean:
 	rm -f boot/pi-init2
 
+reqs:
+	GOPATH=$(path) GOOS=linux GOARCH=arm go get golang.org/x/sys/unix
+
 ## This is an experimental and Mac-only shortcut to installing the files onto a mounted card.
 ## I'm looking for contributions to also support Linux.
 install:

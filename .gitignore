@@ -1,6 +1,5 @@
 src/golang.org
+src/hack
 pkg/
 *.zip
-/pi-init2
-/boot/pi-init2
 *~
