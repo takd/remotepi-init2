@@ -38,8 +38,8 @@
 # echo -e "GET http://github.com HTTP/1.0\n\n" | nc github.com 80 > /dev/null 2>&1
 # if [ $? -eq 0 ]; then
 #   (umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
-#   chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
 #   curl -sSL https://github.com/${github_user}.keys >> /home/pi/.ssh/authorized_keys
+#   chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
 #   sed -i 's|[#]*PasswordAuthentication yes|PasswordAuthentication no|g' /etc/ssh/sshd_config
 # else
 #   echo "Won't install ssh keys, github.com couldn't be reached."
@@ -52,4 +52,5 @@
 
 #### Do other stuff
 # This is just here to help verify that it worked
-echo "alias ll='ls -la'" > /home/pi/.bash_aliases
+sudo -u pi touch /home/pi/.bash_aliases
+echo "alias ll='ls -la'" | tee -a /home/pi/.bash_aliases | tee -a /root/.bashrc > /dev/null
