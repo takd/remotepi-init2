@@ -1,0 +1,7 @@
+#!/bin/bash -eux
+
+# update raspbian
+apt update
+apt upgrade -y
+
+reboot now
