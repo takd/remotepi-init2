@@ -1,3 +1,4 @@
+## This looks complicated, but it's really just getting the path of this Makefile
 path := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 cwd  := $(shell pwd)
 
@@ -11,6 +12,8 @@ clean:
 	rm -f boot/pi-init2
 
 reqs:
+	apt update
+	apt install -y git golang
 	GOPATH=$(path) GOOS=linux GOARCH=arm go get golang.org/x/sys/unix
 
 ## This is an experimental and Mac-only shortcut to installing the files onto a mounted card.
