@@ -166,9 +166,4 @@ k8s_add_weave_net(){
   kubectl $k8s_kubeconfig apply -f "https://cloud.weave.works/k8s/net?k8s-version=$k8s_version"
 }
 
-reboot(){
-  mv $BASH_SOURCE /boot/run-once.d/completed/
-  /sbin/halt --reboot
-}
-
 [ "$0" = "$BASH_SOURCE" ] && k8s__main 
