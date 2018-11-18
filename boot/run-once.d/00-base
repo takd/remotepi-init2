@@ -1,4 +1,13 @@
-#!/bin/bash
+#!/bin/bash -eux
+
+wait_for_inet(){
+  msg='Waiting for internet connection.'
+  until nc -zw2 8.8.8.8 53; do
+    echo -n $msg;
+    msg=' .';
+  done
+  if [[ $msg = ' .' ]]; then echo; fi
+}
 
 #### Wifi Setup (WPA Supplicant)
 ##  Replaces the magic of https://github.com/RPi-Distro/raspberrypi-net-mods/blob/master/debian/raspberrypi-net-mods.service
@@ -14,7 +23,11 @@ network={
 }
 EOF
 chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
-wpa_cli -i wlan0 reconfigure
+until wpa_cli -i wlan0 reconfigure; do
+  echo "Failed to reconfigure wlan0 with wpa_cli."
+  echo "Restarting dhcpcd with systemctl."
+  systemctl restart dhcpcd || true
+done
 
 #### SSH Daemon Setup
 ##  Replaces the magic of https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/master/debian/raspberrypi-sys-mods.sshswitch.service
@@ -26,6 +39,7 @@ rm -f -v /etc/ssh/ssh_host_*_key*
 
 #### Get SSH keys for authentication
 github_user=RichardBronosky
+wait_for_inet
 echo -e "GET http://github.com HTTP/1.0\n\n" | nc github.com 80 > /dev/null 2>&1
 if [ $? -eq 0 ]; then
   (
@@ -40,9 +54,20 @@ else
 fi
 
 #### Install some packages
+apt update
 apt install -y git vim tmux
 
 #### Do other stuff
-# This is just here to help verify that it worked
-sudo -u pi touch /home/pi/.bash_aliases
-echo "alias ll='ls -la'" | tee -a /home/pi/.bash_aliases | tee -a /root/.bashrc > /dev/null
+sudo -u pi touch /home/pi/.bashrc
+( tee -a /home/pi/.bashrc | tee -a /root/.bashrc > /dev/null ) << 'EOF'
+
+alias ll='ls -la'
+ptree(){ ps auxf | awk -v cmd="$1" 'BEGIN{"ps -o ppid= $$" | getline pid} $0 !~ "\_" {p=0} $0 ~ cmd && $2 != pid {p=1} p==1{print}' | less -SEX; }
+EOF
+sudo -u pi touch /home/pi/.bash_history
+( tee -a /home/pi/.bash_history | tee -a /root/.bash_history > /dev/null ) << 'EOF'
+ptree pi-init2-run-parts.sh
+find /boot/run-once.d/
+tail -f /boot/run-once.d/completed/logfile-*
+ptree pi-init2-run-parts.sh; find /boot/run-once.d/; tail -f /boot/run-once.d/completed/logfile-*
+EOF

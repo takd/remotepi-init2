@@ -1,6 +1,16 @@
 #!/bin/bash -eux
 
+wait_for_inet(){
+  msg='Waiting for internet connection.'
+  until nc -zw2 8.8.8.8 53; do
+    echo -n $msg;
+    msg=' .';
+  done
+  if [[ $msg = ' .' ]]; then echo; fi
+}
+
 # update raspbian
+wait_for_inet
 apt update
 apt upgrade -y
 
