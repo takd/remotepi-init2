@@ -1,0 +1,3 @@
+#!/bin/bash -eux
+
+tail -f /boot/run-once.d/completed/logfile-* > /dev/console
