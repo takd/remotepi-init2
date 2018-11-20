@@ -61,6 +61,8 @@ apt install -y git vim tmux
 sudo -u pi touch /home/pi/.bashrc
 ( tee -a /home/pi/.bashrc | tee -a /root/.bashrc > /dev/null ) << 'EOF'
 
+set -o vi
+export EDITOR=vim
 alias ll='ls -la'
 ptree(){ ps auxf | awk -v cmd="$1" 'BEGIN{"ps -o ppid= $$" | getline pid} $0 !~ "\_" {p=0} $0 ~ cmd && $2 != pid {p=1} p==1{print}' | less -SEX; }
 EOF

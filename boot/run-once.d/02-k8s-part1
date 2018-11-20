@@ -104,9 +104,10 @@ k8s_install_kubeadm(){
 }
 
 k8s_update_cmdline(){
-  sudo cp /boot/cmdline.txt /boot/cmdline_backup.txt
+  clf="/boot/cmdline.txt"
+  sudo cp $clf $clf.$(ls $clf* | wc -l)
   for val in "cgroup_enable=memory" "cgroup_memory=1" "cgroup_enable=cpuset"; do
-    grep -q "$val" /boot/cmdline.txt || sed -i "s/rootwait/rootwait $val/" /boot/cmdline.txt
+    grep -q "$val" $clf || sed -i "s/rootwait/rootwait $val/" $clf
   done
 }
 
@@ -146,7 +147,7 @@ k8s_set_hostname(){
 k8s__kubeadm_init(){
   kubeadm init --token-ttl=0 | tee $k8s_kube_dir/init.out
   echo $(grep -- '--discovery-token-ca-cert-hash' $k8s_kube_dir/init.out) > $k8s_kube_dir/join.sh
-  cp -i /etc/kubernetes/admin.conf $k8s_kube_dir/config
+  cp /etc/kubernetes/admin.conf $k8s_kube_dir/config
   k8s_kube_dir
   k8s__taint_master
 }
