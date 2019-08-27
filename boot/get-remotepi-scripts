@@ -1,0 +1,6 @@
+#!/bin/bash
+#### Get additional scripts for subsequent usage
+apt update
+apt install -y git
+mkdir /home/pi/remotepi-scripts
+git clone https://github.com/takd/remotepi-scripts.git /home/pi/remotepi-scripts

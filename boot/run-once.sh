@@ -9,48 +9,58 @@
 #   them ran.
 #   See: http://manpages.ubuntu.com/manpages/bionic/man8/run-parts.8.html
 
+
+#### Update hostname
+##  See https://raspberrypi.stackexchange.com/a/66939/8375 for a list of all the raspi-config magic you may want ot automate.
+raspi-config nonint do_hostname "$(cat /boot/hostname)"
+
+### Update locale, keyboard, WiFi country
+raspi-config nonint do_change_locale "hu_HU.UTF-8"
+raspi-config nonint do_configure_keyboard "hu"
+raspi-config nonint do_wifi_country "HU"
+
+### Enable UART for status LED
+raspi-config nonint do_onewire 1
+
 #### Wifi Setup (WPA Supplicant)
 ##  Replaces the magic of https://github.com/RPi-Distro/raspberrypi-net-mods/blob/master/debian/raspberrypi-net-mods.service
 ##  See: https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
-# cat > /etc/wpa_supplicant/wpa_supplicant.conf << EOF
-# network={
-#     ssid="testing"
-#     psk="testingPassword"
-# }
-# EOF
-# chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
-# wpa_cli -i wlan0 reconfigure
+cat /etc/wpa_supplicant/wpa_supplicant.conf /boot/network.conf > /etc/wpa_supplicant/wpa_supplicant.conf
+chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
+wpa_cli -i wlan0 reconfigure
 
 #### SSH Daemon Setup
 ##  Replaces the magic of https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/master/debian/raspberrypi-sys-mods.sshswitch.service
 ##  See also: https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/master/debian/raspberrypi-sys-mods.regenerate_ssh_host_keys.service
-# update-rc.d ssh enable && invoke-rc.d ssh start
-# dd if=/dev/hwrng of=/dev/urandom count=1 bs=4096
-# rm -f -v /etc/ssh/ssh_host_*_key*
-# /usr/bin/ssh-keygen -A -v
+update-rc.d ssh enable && invoke-rc.d ssh start
+dd if=/dev/hwrng of=/dev/urandom count=1 bs=4096
+rm -f -v /etc/ssh/ssh_host_*_key*
+/usr/bin/ssh-keygen -A -v
 
-#### Update hostname
-##  See https://raspberrypi.stackexchange.com/a/66939/8375 for a list of all the raspi-config magic you may want ot automate.
-# raspi-config nonint do_hostname "$(cat /boot/hostname)"
+#### Setup own services
+mv /boot/services /home/pi/services
+chmod +x /home/pi/services/DS1302/setDateToRTC.py
+chmod +x /home/pi/services/DS1302/getDateFromRTC.py
 
-#### Get SSH keys for authentication
-# github_user=gesellix
-# echo -e "GET http://github.com HTTP/1.0\n\n" | nc github.com 80 > /dev/null 2>&1
-# if [ $? -eq 0 ]; then
-#   (umask 077; mkdir -p /home/pi/.ssh; touch /home/pi/.ssh/authorized_keys)
-#   curl -sSL https://github.com/${github_user}.keys >> /home/pi/.ssh/authorized_keys
-#   chown -R $(id -u pi):$(id -g pi) /home/pi/.ssh
-#   sed -i 's|[#]*PasswordAuthentication yes|PasswordAuthentication no|g' /etc/ssh/sshd_config
-# else
-#   echo "Won't install ssh keys, github.com couldn't be reached."
-# fi
+### Setup RTC time load at startup
+echo "$(sed '$ i\/home/pi/services/DS1302/getDateFromRTC.py' /etc/rc.local)" > /etc/rc.local
+### Run it too
+/home/pi/services/DS1302/getDateFromRTC.py
 
+### Copy shutdown button and wifi indicator services
+## http://www.diegoacuna.me/how-to-run-a-script-as-a-service-in-raspberry-pi-raspbian-jessie/
+cp /home/pi/shutdown-button.service /lib/systemd/system/shutdown-button.service
+chmod 644 /lib/systemd/system/shutdown-button.service
+cp /home/pi/wifi-checker.service /lib/systemd/system/wifi-checker.service
+chmod 644 /lib/systemd/system/wifi-checker.service
 
-#### Install some packages
-# apt update
-# apt install -y vim tmux
+### Enable the new services
+sudo systemctl daemon-reload
+sudo systemctl enable shutdown-button.service
+sudo systemctl start shutdown-button.service
+sudo systemctl enable wifi-checker.service
+sudo systemctl start wifi-checker.service
 
-#### Do other stuff
-# This is just here to help verify that it worked
-sudo -u pi touch /home/pi/.bash_aliases
-echo "alias ll='ls -la'" | tee -a /home/pi/.bash_aliases | tee -a /root/.bashrc > /dev/null
+#### Get additional scripts for subsequent usage, get will be run manually
+mv /boot/get-remotepi-scripts /home/pi/get-remotepi-scripts
+chmod +x get-remotepi-scripts

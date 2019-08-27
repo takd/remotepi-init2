@@ -1,0 +1,11 @@
+[Unit]
+Description=Shutdown Button
+After=multi-user.target
+ 
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/pi/services/shutdown-button.py
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target
