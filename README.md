@@ -1,3 +1,5 @@
+Modified from [original](https://github.com/RichardBronosky/pi-init2) to use for setting up own universal remote. Original readme below, may not always apply:
+
 # Raspberry Pi Pre Init
 
 ## Purpose
