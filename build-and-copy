@@ -11,8 +11,8 @@ export GOOS=linux
 export GOARCH=arm
 
 FILES="boot/*"
-#TARGET_DIR="/media/${USER}/boot"
-TARGET_DIR="/Volumes/boot"
+TARGET_DIR="/media/takd/boot"
+#TARGET_DIR="/Volumes/boot"
 
 go build -o boot/pi-init2 pi-init2 && \
   mv "${TARGET_DIR}/cmdline.txt" "${TARGET_DIR}/cmdline.txt.orig" && \
