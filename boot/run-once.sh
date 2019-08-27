@@ -29,6 +29,8 @@ cat /etc/wpa_supplicant/wpa_supplicant.conf /boot/network.conf > /etc/wpa_suppli
 chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
 wpa_cli -i wlan0 reconfigure
 
+rm /boot/network.conf
+
 #### SSH Daemon Setup
 ##  Replaces the magic of https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/master/debian/raspberrypi-sys-mods.sshswitch.service
 ##  See also: https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/master/debian/raspberrypi-sys-mods.regenerate_ssh_host_keys.service
